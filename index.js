@@ -37,12 +37,16 @@ app.post('/login', (req,res) => {
         req.session.isAuthenticated = true;
         res.redirect('/')
     } else {
-        res.send(403, "Unauthorized")
+        res.redirect('/unauthorized')
     }
 });
 
 app.get('/not_found', (req, res) => {
-    res.sendFile(path.join(__dirname + '/public/error_pages/not_found.html'))
+    res.status(404).sendFile(path.join(__dirname + '/public/error_pages/not_found.html'))
+})
+
+app.get('/unauthorized', (req, res) => {
+    res.status(401).sendFile(path.join(__dirname + '/public/error_pages/unauthorized.html'))
 })
 
 app.get('*', (req, res) => {
