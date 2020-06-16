@@ -41,6 +41,14 @@ app.post('/login', (req,res) => {
     }
 });
 
+app.get('/not_found', (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/error_pages/not_found.html'))
+})
+
+app.get('*', (req, res) => {
+    res.redirect('/not_found')
+})
+
 app.listen(3333, function () {
     console.log('Example app listening on port 3333!')
 });
