@@ -32,30 +32,24 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname + '/public/login.html'))
 })
 
-app.post('/login', (req,res) => {
+app.post('/login', (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
 
-    ad.authenticate(username, password, function(err, auth) {
+    ad.authenticate(username, password, function (err, auth) {
         if (err) {
-            console.log('ERROR: '+JSON.stringify(err));
+            console.log('ERROR: ' + JSON.stringify(err));
             return;
         }
         if (auth) {
-            console.log('Authenticated!');
+            req.session.username = username;
+            req.session.isAuthenticated = true;
+            res.redirect('/')
         }
         else {
-            console.log('Authentication failed!');
+            res.redirect('/login')
         }
     });
-
-    if(username === "mspr" && password === "12345"){
-        req.session.username = username;
-        req.session.isAuthenticated = true;
-        res.redirect('/')
-    } else {
-        res.redirect('/unauthorized')
-    }
 });
 
 app.get('/not_found', (req, res) => {
