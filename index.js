@@ -4,7 +4,6 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const { join } = require('path');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -15,9 +14,19 @@ app.use(session({
     saveUninitialized: false
 }));
 
-// app.get('/', function(req, res) {
-//     res.sendFile(path.join(__dirname + 'public/index.html'));
-// });
+
+
+app.get('/', (req, res) => {
+    if (req.session.isAuthenticated) {
+        res.sendFile(path.join(__dirname + '/public/website/index.html'))
+    } else {
+        res.redirect('/login')
+    }
+})
+
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname + '/public/login.html'))
+})
 
 app.post('/login', (req,res) => {
     let username = req.body.username;
@@ -26,19 +35,11 @@ app.post('/login', (req,res) => {
     if(username === "mspr" && password === "12345"){
         req.session.username = username;
         req.session.isAuthenticated = true;
-        res.redirect('/home')
+        res.redirect('/')
     } else {
         res.send(403, "Unauthorized")
     }
 });
-
-app.get('/home', (req, res) => {
-    if (req.session.isAuthenticated) {
-        res.sendFile(path.join(__dirname + '/public/website/index.html'))
-    } else {
-        res.send(403, 'Unauthorized')
-    }
-})
 
 app.listen(3333, function () {
     console.log('Example app listening on port 3333!')
