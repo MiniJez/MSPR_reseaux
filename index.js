@@ -4,6 +4,12 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const ActiveDirectory = require('activedirectory');
+const config = {
+    url: 'ldap://portail.chatelet.fr',
+    baseDN: 'dc=portail,dc=chatelet,dc=fr'
+};
+const ad = new ActiveDirectory(config);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -13,8 +19,6 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
-
-
 
 app.get('/', (req, res) => {
     if (req.session.isAuthenticated) {
@@ -31,6 +35,19 @@ app.get('/login', (req, res) => {
 app.post('/login', (req,res) => {
     let username = req.body.username;
     let password = req.body.password;
+
+    ad.authenticate(username, password, function(err, auth) {
+        if (err) {
+            console.log('ERROR: '+JSON.stringify(err));
+            return;
+        }
+        if (auth) {
+            console.log('Authenticated!');
+        }
+        else {
+            console.log('Authentication failed!');
+        }
+    });
 
     if(username === "mspr" && password === "12345"){
         req.session.username = username;
