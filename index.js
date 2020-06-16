@@ -39,7 +39,7 @@ app.post('/login', (req, res) => {
     ad.authenticate(username, password, function (err, auth) {
         if (err) {
             console.log('ERROR: ' + JSON.stringify(err));
-            return;
+            res.redirect('/login')
         }
         if (auth) {
             req.session.username = username;
