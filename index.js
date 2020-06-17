@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const ActiveDirectory = require('activedirectory2').promiseWrapper;
 const ipcheck = require('./ipcheck');
+const browsercheck = require('./browsercheck');
 const config = {
     url: 'ldap://portail.chatelet.fr',
     baseDN: 'dc=portail,dc=chatelet,dc=fr'
@@ -25,6 +26,7 @@ app.use(session({
     saveUninitialized: false
 }));
 app.use(ipcheck.ipLoggger);
+app.use(browsercheck.checkBrowser);
 
 app.get('/', (req, res) => {
     if (req.session.isAuthenticated) {
