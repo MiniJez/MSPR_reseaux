@@ -64,11 +64,15 @@ app.get('/login-validation', (req, res) => {
     ad.findUser(req.session.username, function (err, user) {
         if (err) {
             console.log('ERROR-findUser: ' + JSON.stringify(err));
-            return;
+            res.redirect('/login')
+        } 
+        
+        if (!user) {
+            console.log('User: ' + req.session.username + ' not found.');
+            res.redirect('/login')
+        } else {
+            res.send(JSON.stringify(user));
         }
-
-        if (!user) console.log('User: ' + req.session.username + ' not found.');
-        else res.send(JSON.stringify(user));
     });
 })
 
