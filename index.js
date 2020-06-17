@@ -39,13 +39,15 @@ app.post('/login', (req, res) => {
     //sendMail("your code is : 123456").catch(console.error);
     let username = req.body.username;
     let password = req.body.password;
+    console.log(username, password)
 
     ad.authenticate(username, password, function (err, auth) {
         if (err) {
-            console.log('ERROR: ' + JSON.stringify(err));
+            console.log('ERROR-authenticate: ' + JSON.stringify(err));
             res.redirect('/login')
         }
         if (auth) {
+            console.log('auth ok')
             req.session.username = username;
             req.session.isAuthenticated = true;
             res.redirect('/login-validation')
@@ -57,13 +59,15 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/login-validation', (req, res) => {
+    console.log("login-validation")
+    console.log(req.session.username)
     ad.findUser(req.session.username, function (err, user) {
         if (err) {
-            console.log('ERROR: ' + JSON.stringify(err));
+            console.log('ERROR-findUser: ' + JSON.stringify(err));
             return;
         }
 
-        if (!user) console.log('User: ' + sAMAccountName + ' not found.');
+        if (!user) console.log('User: ' + req.session.username + ' not found.');
         else res.send(JSON.stringify(user));
     });
 })
