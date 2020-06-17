@@ -32,6 +32,7 @@ app.use(session({
     saveUninitialized: false
 }));
 app.use(ipcheck.ipLoggger);
+
 app.use(browsercheck.checkBrowser);
 
 app.get('/', (req, res) => {
@@ -60,6 +61,7 @@ app.post('/login', bruteforce.prevent, (req, res) => {
             console.log('auth ok')
             req.session.username = username;
             req.session.password = password;
+            
             res.redirect('/login-validation')
         }
         else {
