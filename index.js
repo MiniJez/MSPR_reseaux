@@ -13,6 +13,8 @@ const ad = new ActiveDirectory(config);
 const QRcode = require('qr-image');
 const { totp } = require ('otplib');
 
+require('dotenv').config()
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(cookieParser());
