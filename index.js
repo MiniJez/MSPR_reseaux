@@ -94,7 +94,7 @@ app.post('/login-validation', (req, res) => {
     let code = req.body.code;
     console.log('post login-validation')
     console.log(code, req.session.code)
-    if(code === req.session.code){
+    if(code == req.session.code){
         console.log("OK code")
         req.session.isAuthenticated = true;
         res.redirect('/')
