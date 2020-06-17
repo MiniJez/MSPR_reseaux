@@ -19,8 +19,6 @@ const config = {
     baseDN: 'dc=portail,dc=chatelet,dc=fr'
 };
 const ad = new ActiveDirectory(config);
-const QRcode = require('qr-image');
-const { totp } = require('otplib');
 
 require('dotenv').config()
 
