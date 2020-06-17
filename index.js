@@ -65,9 +65,7 @@ app.get('/login-validation', (req, res) => {
         if (err) {
             console.log('ERROR-findUser: ' + JSON.stringify(err));
             res.redirect('/login')
-        } 
-        
-        if (!user) {
+        } else if (!user) {
             console.log('User: ' + req.session.username + ' not found.');
             res.redirect('/login')
         } else {
