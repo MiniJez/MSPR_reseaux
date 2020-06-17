@@ -49,6 +49,7 @@ app.post('/login', (req, res) => {
         if (auth) {
             console.log('auth ok')
             req.session.username = username;
+            req.session.password = password;
             req.session.isAuthenticated = true;
             res.redirect('/login-validation')
         }
@@ -61,6 +62,7 @@ app.post('/login', (req, res) => {
 app.get('/login-validation', (req, res) => {
     console.log("login-validation")
     console.log(req.session.username)
+    console.log(req.session.password)
 
     const ad2 = new ActiveDirectory({
         url: 'ldap://portail.chatelet.fr',
