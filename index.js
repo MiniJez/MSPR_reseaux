@@ -50,7 +50,6 @@ app.post('/login', (req, res) => {
             console.log('auth ok')
             req.session.username = username;
             req.session.password = password;
-            req.session.isAuthenticated = true;
             res.redirect('/login-validation')
         }
         else {
@@ -96,7 +95,9 @@ app.post('/login-validation', (req, res) => {
     console.log('post login-validation')
     console.log(code, req.session.code)
     if(code === req.session.code){
-        res.sendFile(path.join(__dirname + '/public/website/index.html'))
+        console.log("OK code")
+        req.session.isAuthenticated = true;
+        res.redirect('/')
     } else {
         res.redirect('login-validation')
     }
