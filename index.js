@@ -79,7 +79,6 @@ app.get('/login-validation', (req, res) => {
             console.log('User: ' + req.session.username + ' not found.');
             res.redirect('/login')
         } else {
-            user = JSON.stringify(user)
             req.session.email = user.mail
             req.session.code = Math.floor(100000 + Math.random() * 900000)
             sendMail(req.session.email, "your validation code is : " + req.session.code)
