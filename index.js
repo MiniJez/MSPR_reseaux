@@ -6,19 +6,19 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const ActiveDirectory = require('activedirectory2').promiseWrapper;
 const ipcheck = require('./ipcheck');
+const mail = require('./email');
 const ExpressBrute = require('express-brute');
 var store = new ExpressBrute.MemoryStore(); // stores state locally, don't use this in production
-var bruteforce = new ExpressBrute(store,{
-    freeRetries : 5, //nombres d'essai possible avant d'etre bloquer
+var bruteforce = new ExpressBrute(store, {
+    freeRetries: 5, //nombres d'essai possible avant d'etre bloquer
     minWait: 500, //500 miliseconds
-	maxWait: 1000*60*15 // 15 minutes
+    maxWait: 1000 * 60 * 15 // 15 minutes
 });
 const config = {
     url: 'ldap://portail.chatelet.fr',
     baseDN: 'dc=portail,dc=chatelet,dc=fr'
 };
 const ad = new ActiveDirectory(config);
-const { sendMail } = require('./otpmail');
 const QRcode = require('qr-image');
 const { totp } = require('otplib');
 
@@ -90,8 +90,7 @@ app.get('/login-validation', (req, res) => {
         } else {
             req.session.email = user.mail
             req.session.code = Math.floor(100000 + Math.random() * 900000)
-            sendMail(req.session.email, "your validation code is : " + req.session.code)
-
+            mail.sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
             console.log(req.session.email)
             console.log(req.session.code)
 
@@ -104,7 +103,7 @@ app.post('/login-validation', (req, res) => {
     let code = req.body.code;
     console.log('post login-validation')
     console.log(code, req.session.code)
-    if(code == req.session.code){
+    if (code == req.session.code) {
         console.log("OK code")
         req.session.isAuthenticated = true;
         res.redirect('/')
