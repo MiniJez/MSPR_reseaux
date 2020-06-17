@@ -18,6 +18,7 @@ const config = {
     baseDN: 'dc=portail,dc=chatelet,dc=fr'
 };
 const ad = new ActiveDirectory(config);
+const { sendMail } = require('./otpmail');
 const QRcode = require('qr-image');
 const { totp } = require('otplib');
 
@@ -48,35 +49,68 @@ app.get('/login', (req, res) => {
 app.post('/login', bruteforce.prevent, (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
-    let code = req.body.code;
-    console.log(code)
-    let secret = "JBSWY3DPEHPK3PXP";
-    const isValid = totp.check(code, secret);
-    console.log(isValid)
+    console.log(username, password)
 
-    // ad.authenticate(username, password, function (err, auth) {
-    //     if (err) {
-    //         console.log('ERROR: ' + JSON.stringify(err));
-    //         res.redirect('/login')
-    //     }
-    //     if (auth) {
-    //         req.session.username = username;
-    //         req.session.isAuthenticated = true;
-    //         res.redirect('/')
-    //     }
-    //     else {
-    //         res.redirect('/login')
-    //     }
-    // });
+    ad.authenticate(username, password, function (err, auth) {
+        if (err) {
+            console.log('ERROR-authenticate: ' + JSON.stringify(err));
+            res.redirect('/login')
+        }
+        if (auth) {
+            console.log('auth ok')
+            req.session.username = username;
+            req.session.password = password;
+            res.redirect('/login-validation')
+        }
+        else {
+            res.redirect('/login')
+        }
+    });
 });
 
-app.get('/qrcode', (req, res) => {
-    const twoFACode = 'otpauth://totp/chatelet?secret=JBSWY3DPEHPK3PXP'
-    // const isValid = totp.check(token, secret);
-    // const isValid = totp.verify({ token, secret });
-    const qrcode = QRcode.image(twoFACode, { type: 'png' });
-    res.setHeader('Content-type', 'image/png');
-    qrcode.pipe(res);
+app.get('/login-validation', (req, res) => {
+    console.log("login-validation")
+    console.log(req.session.username)
+    console.log(req.session.password)
+
+    const ad2 = new ActiveDirectory({
+        url: 'ldap://portail.chatelet.fr',
+        baseDN: 'dc=portail,dc=chatelet,dc=fr',
+        bindDN: req.session.username,
+        bindCredentials: req.session.password
+    });
+
+    ad2.findUser(req.session.username, function (err, user) {
+        if (err) {
+            console.log('ERROR-findUser: ' + JSON.stringify(err));
+            res.redirect('/login')
+        } else if (!user) {
+            console.log('User: ' + req.session.username + ' not found.');
+            res.redirect('/login')
+        } else {
+            req.session.email = user.mail
+            req.session.code = Math.floor(100000 + Math.random() * 900000)
+            sendMail(req.session.email, "your validation code is : " + req.session.code)
+
+            console.log(req.session.email)
+            console.log(req.session.code)
+
+            res.sendFile(path.join(__dirname + '/public/login-validation.html'))
+        }
+    });
+})
+
+app.post('/login-validation', (req, res) => {
+    let code = req.body.code;
+    console.log('post login-validation')
+    console.log(code, req.session.code)
+    if(code == req.session.code){
+        console.log("OK code")
+        req.session.isAuthenticated = true;
+        res.redirect('/')
+    } else {
+        res.redirect('login-validation')
+    }
 });
 
 app.get('/not_found', (req, res) => {
