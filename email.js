@@ -11,22 +11,21 @@ var transporter = nodemailer.createTransport({
     }
 });
 
-module.exports.sendEmail = function (usermail, subject, mainText) {
+module.exports.sendEmail = async function (usermail, subject, mainText) {
     if (subject === null) { // if the value is null have a defulat string there ( forgot to put it in the function)
         subject = 'New mail from portail.chatelet.fr'
     }
     if (subject === null) { // if the value is null have a defulat string there ( forgot to put it in the function)
         mainText = 'This is the body of the mail'
     }
-    var mailOptions = {
-        from: 'noreply@portail.chatelet.fr',
+
+    //Send the mail
+    await transporter.sendMail({
+        from: 'no.reply.chatelet.portail@gmail.com',
         to: usermail,
         subject: subject,
         text: mainText
-    };
-
-    //Send the mail
-    transporter.sendMail(mailOptions, function (error, info) {
+    }, function (error, info) {
         if (error) {
             console.log(error);
         } else {
@@ -34,6 +33,3 @@ module.exports.sendEmail = function (usermail, subject, mainText) {
         }
     });
 }
-
-//testing
-//this.sendEmail('richardadrien0@gmail.com',"lol","lmo")
