@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-async function main(text) {
+async function main(receiver, text) {
     var smtpTransport = nodemailer.createTransport({
         service: "Gmail",
         auth: {
@@ -11,7 +11,7 @@ async function main(text) {
 
     let info = await smtpTransport.sendMail({
         from: "no.reply.chatelet.portail@gmail.com",
-        to: "edouardclisson@gmail.com",
+        to: receiver,
         subject: "Code de vérification pour portail.chatelet.fr",
         text: text
     }, (err, info) => {

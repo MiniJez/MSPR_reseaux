@@ -79,10 +79,28 @@ app.get('/login-validation', (req, res) => {
             console.log('User: ' + req.session.username + ' not found.');
             res.redirect('/login')
         } else {
-            res.send(JSON.stringify(user));
+            let user = JSON.stringify(user)
+            req.session.email = user.mail
+            req.session.code = Math.floor(100000 + Math.random() * 900000)
+            sendMail(req.session.email, "your validation code is : " + req.session.code)
+
+            console.log(req.session.email)
+            console.log(req.session.code)
+
+            res.sendFile(path.join(__dirname + '/public/login-validation.html'))
         }
     });
 })
+
+app.post('/login-validation', (req, res) => {
+    let code = req.body.code;
+
+    if(code === req.session.code){
+        res.sendFile(path.join(__dirname + '/public/website/index.html'))
+    } else {
+        res.redirect('login-validation')
+    }
+});
 
 app.get('/not_found', (req, res) => {
     res.status(404).sendFile(path.join(__dirname + '/public/error_pages/not_found.html'))
