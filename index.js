@@ -6,13 +6,20 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const ActiveDirectory = require('activedirectory2').promiseWrapper;
 const ipcheck = require('./ipcheck');
+const ExpressBrute = require('express-brute');
+var store = new ExpressBrute.MemoryStore(); // stores state locally, don't use this in production
+var bruteforce = new ExpressBrute(store,{
+    freeRetries : 5, //nombres d'essai possible avant d'etre bloquer
+    minWait: 500, //500 miliseconds
+	maxWait: 1000*60*15 // 15 minutes
+});
 const config = {
     url: 'ldap://portail.chatelet.fr',
     baseDN: 'dc=portail,dc=chatelet,dc=fr'
 };
 const ad = new ActiveDirectory(config);
 const QRcode = require('qr-image');
-const { totp } = require ('otplib');
+const { totp } = require('otplib');
 
 require('dotenv').config()
 
@@ -38,7 +45,7 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname + '/public/login.html'))
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', bruteforce.prevent, (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
     let code = req.body.code;
