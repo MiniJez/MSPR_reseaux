@@ -10,6 +10,8 @@ const config = {
     baseDN: 'dc=portail,dc=chatelet,dc=fr'
 };
 const ad = new ActiveDirectory(config);
+const QRcode = require('qr-image');
+const { totp } = require ('otplib');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -35,22 +37,36 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
+    let code = req.body.code;
+    console.log(code)
+    let secret = "JBSWY3DPEHPK3PXP";
+    const isValid = totp.check(code, secret);
+    console.log(isValid)
 
-    ad.authenticate(username, password, function (err, auth) {
-        if (err) {
-            console.log('ERROR: ' + JSON.stringify(err));
-            res.redirect('/login')
-        }
-        if (auth) {
-            req.session.username = username;
-            req.session.isAuthenticated = true;
-            res.redirect('/')
-        }
-        else {
-            res.redirect('/login')
-        }
-    });
+    // ad.authenticate(username, password, function (err, auth) {
+    //     if (err) {
+    //         console.log('ERROR: ' + JSON.stringify(err));
+    //         res.redirect('/login')
+    //     }
+    //     if (auth) {
+    //         req.session.username = username;
+    //         req.session.isAuthenticated = true;
+    //         res.redirect('/')
+    //     }
+    //     else {
+    //         res.redirect('/login')
+    //     }
+    // });
 });
+
+app.get('/qrcode', (req, res) => {
+    const twoFACode = 'otpauth://totp/chatelet?secret=JBSWY3DPEHPK3PXP'
+    // const isValid = totp.check(token, secret);
+    // const isValid = totp.verify({ token, secret });
+    const qrcode = QRcode.image(twoFACode, { type: 'png' });
+    res.setHeader('Content-type', 'image/png');
+    qrcode.pipe(res);
+})
 
 app.get('/not_found', (req, res) => {
     res.status(404).sendFile(path.join(__dirname + '/public/error_pages/not_found.html'))
