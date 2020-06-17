@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const ActiveDirectory = require('activedirectory2').promiseWrapper;
+const ipcheck = require('./ipcheck');
 const config = {
     url: 'ldap://portail.chatelet.fr',
     baseDN: 'dc=portail,dc=chatelet,dc=fr'
@@ -23,6 +24,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
+app.use(ipcheck.ipLoggger);
 
 app.get('/', (req, res) => {
     if (req.session.isAuthenticated) {
@@ -30,11 +32,11 @@ app.get('/', (req, res) => {
     } else {
         res.redirect('/login')
     }
-})
+});
 
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname + '/public/login.html'))
-})
+});
 
 app.post('/login', (req, res) => {
     let username = req.body.username;
@@ -68,19 +70,19 @@ app.get('/qrcode', (req, res) => {
     const qrcode = QRcode.image(twoFACode, { type: 'png' });
     res.setHeader('Content-type', 'image/png');
     qrcode.pipe(res);
-})
+});
 
 app.get('/not_found', (req, res) => {
     res.status(404).sendFile(path.join(__dirname + '/public/error_pages/not_found.html'))
-})
+});
 
 app.get('/unauthorized', (req, res) => {
     res.status(401).sendFile(path.join(__dirname + '/public/error_pages/unauthorized.html'))
-})
+});
 
 app.get('*', (req, res) => {
     res.redirect('/not_found')
-})
+});
 
 app.listen(3333, function () {
     console.log('Example app listening on port 3333!')
