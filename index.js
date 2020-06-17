@@ -10,8 +10,7 @@ const config = {
     baseDN: 'dc=portail,dc=chatelet,dc=fr'
 };
 const ad = new ActiveDirectory(config);
-const QRcode = require('qr-image');
-const { totp } = require ('otplib');
+const { sendMail } = require('./otpmail');
 
 require('dotenv').config()
 
@@ -37,37 +36,36 @@ app.get('/login', (req, res) => {
 })
 
 app.post('/login', (req, res) => {
+    //sendMail("your code is : 123456").catch(console.error);
     let username = req.body.username;
     let password = req.body.password;
-    let code = req.body.code;
-    console.log(code)
-    let secret = "JBSWY3DPEHPK3PXP";
-    const isValid = totp.check(code, secret);
-    console.log(isValid)
 
-    // ad.authenticate(username, password, function (err, auth) {
-    //     if (err) {
-    //         console.log('ERROR: ' + JSON.stringify(err));
-    //         res.redirect('/login')
-    //     }
-    //     if (auth) {
-    //         req.session.username = username;
-    //         req.session.isAuthenticated = true;
-    //         res.redirect('/')
-    //     }
-    //     else {
-    //         res.redirect('/login')
-    //     }
-    // });
+    ad.authenticate(username, password, function (err, auth) {
+        if (err) {
+            console.log('ERROR: ' + JSON.stringify(err));
+            res.redirect('/login')
+        }
+        if (auth) {
+            req.session.username = username;
+            req.session.isAuthenticated = true;
+            res.redirect('/login-validation')
+        }
+        else {
+            res.redirect('/login')
+        }
+    });
 });
 
-app.get('/qrcode', (req, res) => {
-    const twoFACode = 'otpauth://totp/chatelet?secret=JBSWY3DPEHPK3PXP'
-    // const isValid = totp.check(token, secret);
-    // const isValid = totp.verify({ token, secret });
-    const qrcode = QRcode.image(twoFACode, { type: 'png' });
-    res.setHeader('Content-type', 'image/png');
-    qrcode.pipe(res);
+app.get('/login-validation', (req, res) => {
+    ad.findUser(req.session.username, function (err, user) {
+        if (err) {
+            console.log('ERROR: ' + JSON.stringify(err));
+            return;
+        }
+
+        if (!user) console.log('User: ' + sAMAccountName + ' not found.');
+        else res.send(JSON.stringify(user));
+    });
 })
 
 app.get('/not_found', (req, res) => {
