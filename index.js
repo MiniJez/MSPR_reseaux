@@ -93,7 +93,7 @@ app.get('/login-validation', (req, res) => {
 
 app.post('/login-validation', (req, res) => {
     let code = req.body.code;
-
+    console.log('post login-validation')
     if(code === req.session.code){
         res.sendFile(path.join(__dirname + '/public/website/index.html'))
     } else {
