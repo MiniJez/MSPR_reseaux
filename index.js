@@ -61,7 +61,15 @@ app.post('/login', (req, res) => {
 app.get('/login-validation', (req, res) => {
     console.log("login-validation")
     console.log(req.session.username)
-    ad.findUser(req.session.username, function (err, user) {
+
+    const ad2 = new ActiveDirectory({
+        url: 'ldap://portail.chatelet.fr',
+        baseDN: 'dc=portail,dc=chatelet,dc=fr',
+        bindDN: req.session.username,
+        bindCredentials: req.session.password
+    });
+
+    ad2.findUser(req.session.username, function (err, user) {
         if (err) {
             console.log('ERROR-findUser: ' + JSON.stringify(err));
             res.redirect('/login')
