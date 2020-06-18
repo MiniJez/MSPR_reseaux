@@ -17,6 +17,7 @@ module.exports.checkBrowser = function (req, res, next) {
             console.log(err);
         }else{
             if (row.IsExist == 0) {
+                console.log("insert")
                 db.run("INSERT INTO browsers VALUES ('"+username+"','"+actualBrowser+"')");
             }else{
                 db.each("SELECT * FROM browsers WHERE login = '"+username+"'", function(err,row){
@@ -24,7 +25,8 @@ module.exports.checkBrowser = function (req, res, next) {
                         console.log(err);
                     }else{
                         if(row.navigator != actualBrowser){
-                            mail.sendEmail("lou.bege@epsi.fr", "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support !")
+                            console.log("update")
+                            mail.sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support !")
                             db.run("UPDATE browsers SET navigator = '"+(actualBrowser)+"' WHERE login = '"+username+"'");
                             req.session.isNewBrowser = true;
                         }else{

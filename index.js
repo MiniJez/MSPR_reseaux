@@ -59,8 +59,6 @@ app.post('/login', bruteforce.prevent, (req, res) => {
             console.log('auth ok')
             req.session.username = username;
             req.session.password = password;
-
-            app.use(browsercheck.checkBrowser);
             
             res.redirect('/login-validation')
         }
@@ -91,6 +89,9 @@ app.get('/login-validation', (req, res) => {
             res.redirect('/login')
         } else {
             req.session.email = user.mail
+
+            app.use(browsercheck.checkBrowser);
+            
             req.session.code = Math.floor(100000 + Math.random() * 900000)
             mail.sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
             console.log(req.session.email)
