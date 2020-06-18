@@ -91,7 +91,7 @@ app.get('/login-validation', (req, res) => {
         } else {
             req.session.email = user.mail
             
-            BrowserCheck();
+            BrowserCheck(req);
 
             req.session.code = Math.floor(100000 + Math.random() * 900000)
             mail.sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
@@ -132,7 +132,7 @@ app.listen(3333, function () {
     console.log('Example app listening on port 3333!')
 });
 
-function BrowserCheck(){
+function BrowserCheck(req){
     console.log("--- Browser check ---")
     var source = req.headers['user-agent'];
     var ua = useragent.parse(source);
