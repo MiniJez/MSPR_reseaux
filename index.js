@@ -93,7 +93,7 @@ app.get('/login-validation', (req, res) => {
             
             BrowserCheck(req)
 
-            if(!req.session.isNewBrowser){
+            if(req.session.isNewBrowser == false){
                 req.session.code = Math.floor(100000 + Math.random() * 900000)
                 sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
             }
