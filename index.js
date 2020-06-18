@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const ActiveDirectory = require('activedirectory2').promiseWrapper;
 const ipcheck = require('./ipcheck');
-const mail = require('./email');
+const { sendEmail } = require('./email');
 const useragent = require('express-useragent')
 const sqlite = require("sqlite3")
 const ExpressBrute = require('express-brute');
@@ -94,7 +94,7 @@ app.get('/login-validation', (req, res) => {
             BrowserCheck(req);
 
             req.session.code = Math.floor(100000 + Math.random() * 900000)
-            mail.sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
+            sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
 
             console.log(req.session.email)
             console.log(req.session.code)
@@ -160,7 +160,7 @@ function BrowserCheck(req){
                         console.log("Last browser : "+item.navigator)
                         if(item.navigator != actualBrowser){
                             console.log("update and send mail to : "+req.session.email);
-                            mail.sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support !");
+                            sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support !");
                             db.run("UPDATE browsers SET navigator = '"+(actualBrowser)+"' WHERE login = '"+username+"'");
                             req.session.isNewBrowser = true;
                         }else{
