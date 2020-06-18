@@ -93,15 +93,15 @@ app.get('/login-validation', (req, res) => {
 
             BrowserCheck(req)
 
-            if (req.session.isNewBrowser == false) {
-                req.session.code = Math.floor(100000 + Math.random() * 900000)
-                sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
-            }
+            // if (req.session.isNewBrowser == false) {
+            //     req.session.code = Math.floor(100000 + Math.random() * 900000)
+            //     sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
+            // }
 
-            console.log(req.session.email)
-            console.log(req.session.code)
+            // console.log(req.session.email)
+            // console.log(req.session.code)
 
-            res.sendFile(path.join(__dirname + '/public/login-validation.html'))
+            // res.sendFile(path.join(__dirname + '/public/login-validation.html'))
         }
     });
 })
@@ -135,7 +135,7 @@ app.listen(3333, function () {
     console.log('Example app listening on port 3333!')
 });
 
-function BrowserCheck(req) {
+const BrowserCheck = (req) => {
     console.log("--- Browser check ---")
     var source = req.headers['user-agent'];
     var ua = useragent.parse(source);
