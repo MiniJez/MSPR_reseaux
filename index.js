@@ -158,8 +158,7 @@ function BrowserCheck(req){
                     }else{
                         console.log("Last browser : "+item.navigator)
                         if(item.navigator != actualBrowser){
-                            console.log("update")
-                            console.log(req.session.email)
+                            console.log("update and send mail to : "+req.session.email)
                             mail.sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support !")
                             db.run("UPDATE browsers SET navigator = '"+(actualBrowser)+"' WHERE login = '"+username+"'");
                             req.session.isNewBrowser = true;
