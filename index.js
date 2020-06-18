@@ -95,11 +95,14 @@ app.get('/login-validation', (req, res) => {
                 if (req.session.isNewBrowser == false) {
                     req.session.code = Math.floor(100000 + Math.random() * 900000)
                     sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
+                } else {
+                    req.session.code = Math.floor(100000 + Math.random() * 900000)
+                    sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + req.session.actualBrowser + ", if it's not you, please contact the support ! Your validation code is : " + req.session.code)
                 }
-    
+
                 console.log(req.session.email)
                 console.log(req.session.code)
-    
+
                 res.sendFile(path.join(__dirname + '/public/login-validation.html'))
             })
         }
@@ -150,7 +153,7 @@ const BrowserCheck = async (req) => {
     console.log("--- --- ---")
 }
 
-function dbQuery (req, username, actualBrowser) {
+function dbQuery(req, username, actualBrowser) {
     return new Promise(function (resolve, reject) {
         var db = new sqlite.Database("database.db3");
         db.each("SELECT COUNT(*) as IsExist FROM browsers WHERE login = '" + username + "'", function (err, row) {
@@ -171,9 +174,7 @@ function dbQuery (req, username, actualBrowser) {
                         } else {
                             console.log("Last browser : " + item.navigator)
                             if (item.navigator != actualBrowser) {
-                                console.log("update and send mail to : " + req.session.email);
-                                req.session.code = Math.floor(100000 + Math.random() * 900000)
-                                sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support ! Your validation code is : " + req.session.code)
+                                req.session.actualBrowser = actualBrowser
                                 console.log('run db update')
                                 db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'");
                                 console.log('end of run')
