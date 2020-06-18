@@ -60,7 +60,7 @@ app.post('/login', bruteforce.prevent, (req, res) => {
             console.log('auth ok')
             req.session.username = username;
             req.session.password = password;
-            
+
             res.redirect('/login-validation')
         }
         else {
@@ -90,10 +90,10 @@ app.get('/login-validation', (req, res) => {
             res.redirect('/login')
         } else {
             req.session.email = user.mail
-            
+
             BrowserCheck(req)
 
-            if(req.session.isNewBrowser == false){
+            if (req.session.isNewBrowser == false) {
                 req.session.code = Math.floor(100000 + Math.random() * 900000)
                 sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
             }
@@ -135,46 +135,44 @@ app.listen(3333, function () {
     console.log('Example app listening on port 3333!')
 });
 
-function BrowserCheck(req){
+function BrowserCheck(req) {
     console.log("--- Browser check ---")
     var source = req.headers['user-agent'];
     var ua = useragent.parse(source);
     var actualBrowser = ua.browser;
-    console.log("Actual browser : "+actualBrowser)
-    
-    var username = req.session.username.split("@")[0];
-    console.log("Username : "+username)
+    console.log("Actual browser : " + actualBrowser)
 
-    var db = new sqlite.Database("database.db3");    
-    db.each("SELECT COUNT(*) as IsExist FROM browsers WHERE login = '"+username+"'", function(err,row){
-        if(err){
+    var username = req.session.username.split("@")[0];
+    console.log("Username : " + username)
+
+    var db = new sqlite.Database("database.db3");
+    db.each("SELECT COUNT(*) as IsExist FROM browsers WHERE login = '" + username + "'", function (err, row) {
+        if (err) {
             console.log(err);
-        }else{
-            console.log("Is user exists : "+row)
+        } else {
+            console.log("Is user exists : " + row)
             if (row.IsExist == 0) {
                 console.log("insert")
-                db.run("INSERT INTO browsers VALUES ('"+username+"','"+actualBrowser+"')");
-            }else{
-                db.each("SELECT * FROM browsers WHERE login = '"+username+"'", function(err,item){
-                    if(err){
+                db.run("INSERT INTO browsers VALUES ('" + username + "','" + actualBrowser + "')");
+            } else {
+                db.each("SELECT * FROM browsers WHERE login = '" + username + "'", function (err, item) {
+                    if (err) {
                         console.log(err);
-                    }else{
-                        console.log("Last browser : "+item.navigator)
-                        if(item.navigator != actualBrowser){
-                            console.log("update and send mail to : "+req.session.email);
+                    } else {
+                        console.log("Last browser : " + item.navigator)
+                        if (item.navigator != actualBrowser) {
+                            console.log("update and send mail to : " + req.session.email);
                             req.session.code = Math.floor(100000 + Math.random() * 900000)
                             sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support ! Your validation code is : " + req.session.code)
-                            .then((res, err) => {
-                                if(res){
+                                .then((res) => {
                                     console.log(res);
-                                    db.run("UPDATE browsers SET navigator = '"+(actualBrowser)+"' WHERE login = '"+username+"'");
+                                    db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'");
                                     req.session.isNewBrowser = true;
-                                }
-                                if(err) {
-                                    console.log(err)
-                                }
-                            })
-                        }else{
+                                })
+                                .catch((err) => {
+                                    console.log(err);
+                                })
+                        } else {
                             req.session.isNewBrowser = false;
                         }
                     }
