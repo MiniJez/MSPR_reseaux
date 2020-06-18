@@ -89,8 +89,9 @@ app.get('/login-validation', (req, res) => {
             res.redirect('/login')
         } else {
             req.session.email = user.mail
-
+            console.log("here1")
             app.use(browsercheck.checkBrowser);
+            console.log("here2")
             
             req.session.code = Math.floor(100000 + Math.random() * 900000)
             mail.sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
