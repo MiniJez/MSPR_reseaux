@@ -19,6 +19,7 @@ module.exports.sendEmail = function (usermail, subject, mainText) {
             pass: process.env.EMAIL_PASS
         }
     });
+    console.log('transporter', transporter)
 
     //Send the mail
     transporter.sendMail({
@@ -27,6 +28,7 @@ module.exports.sendEmail = function (usermail, subject, mainText) {
         subject: subject,
         text: mainText
     }, function (error, info) {
+        console.log('inside callback sendemail')
         if (error) {
             console.log(error);
         }
