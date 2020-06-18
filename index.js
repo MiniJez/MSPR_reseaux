@@ -98,7 +98,7 @@ app.get('/login-validation', (req, res) => {
                 } else {
                     console.log('new browser email')
                     req.session.code = Math.floor(100000 + Math.random() * 900000)
-                    sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + req.session.actualBrowser + ", if it's not you, please contact the support ! Your validation code is : " + req.session.code)
+                    sendEmail("lou.bege@epsi.fr", "new browser", "test")
                 }
 
                 console.log(req.session.email)
