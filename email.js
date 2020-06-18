@@ -3,14 +3,6 @@
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 
-var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_SEND,
-        pass: process.env.EMAIL_PASS
-    }
-});
-
 module.exports.sendEmail = function (usermail, subject, mainText) {
     console.log('inside send email')
     if (subject === null) { // if the value is null have a defulat string there ( forgot to put it in the function)
@@ -19,6 +11,14 @@ module.exports.sendEmail = function (usermail, subject, mainText) {
     if (subject === null) { // if the value is null have a defulat string there ( forgot to put it in the function)
         mainText = 'This is the body of the mail'
     }
+
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_SEND,
+            pass: process.env.EMAIL_PASS
+        }
+    });
 
     //Send the mail
     transporter.sendMail({
