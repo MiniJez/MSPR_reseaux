@@ -91,7 +91,7 @@ app.get('/login-validation', (req, res) => {
         } else {
             req.session.email = user.mail
             
-            BrowserCheck(req);
+            BrowserCheck(req)
 
             req.session.code = Math.floor(100000 + Math.random() * 900000)
             sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
@@ -160,9 +160,17 @@ function BrowserCheck(req){
                         console.log("Last browser : "+item.navigator)
                         if(item.navigator != actualBrowser){
                             console.log("update and send mail to : "+req.session.email);
-                            sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support !");
-                            db.run("UPDATE browsers SET navigator = '"+(actualBrowser)+"' WHERE login = '"+username+"'");
-                            req.session.isNewBrowser = true;
+                            sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support !")
+                            .then((res, err) => {
+                                if(res){
+                                    console.log(res);
+                                    db.run("UPDATE browsers SET navigator = '"+(actualBrowser)+"' WHERE login = '"+username+"'");
+                                    req.session.isNewBrowser = true;
+                                }
+                                if(err) {
+                                    console.log(err)
+                                }
+                            })
                         }else{
                             req.session.isNewBrowser = false;
                         }
