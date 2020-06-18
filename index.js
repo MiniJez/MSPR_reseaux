@@ -145,12 +145,12 @@ const BrowserCheck = async (req) => {
     var username = req.session.username.split("@")[0];
     console.log("Username : " + username)
 
-    await dbQuery()
+    await dbQuery(req, username, actualBrowser)
 
     console.log("--- --- ---")
 }
 
-function dbQuery () {
+function dbQuery (req, username, actualBrowser) {
     return new Promise(function (resolve, reject) {
         var db = new sqlite.Database("database.db3");
         db.each("SELECT COUNT(*) as IsExist FROM browsers WHERE login = '" + username + "'", function (err, row) {
