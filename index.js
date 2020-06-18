@@ -91,17 +91,17 @@ app.get('/login-validation', (req, res) => {
         } else {
             req.session.email = user.mail
 
-            BrowserCheck(req)
-
-            if (req.session.isNewBrowser == false) {
-                req.session.code = Math.floor(100000 + Math.random() * 900000)
-                sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
-            }
-
-            console.log(req.session.email)
-            console.log(req.session.code)
-
-            res.sendFile(path.join(__dirname + '/public/login-validation.html'))
+            BrowserCheck(req).then(() => {
+                if (req.session.isNewBrowser == false) {
+                    req.session.code = Math.floor(100000 + Math.random() * 900000)
+                    sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
+                }
+    
+                console.log(req.session.email)
+                console.log(req.session.code)
+    
+                res.sendFile(path.join(__dirname + '/public/login-validation.html'))
+            })
         }
     });
 })
@@ -135,7 +135,7 @@ app.listen(3333, function () {
     console.log('Example app listening on port 3333!')
 });
 
-const BrowserCheck = (req) => {
+const BrowserCheck = async (req) => {
     console.log("--- Browser check ---")
     var source = req.headers['user-agent'];
     var ua = useragent.parse(source);
@@ -145,37 +145,48 @@ const BrowserCheck = (req) => {
     var username = req.session.username.split("@")[0];
     console.log("Username : " + username)
 
-    var db = new sqlite.Database("database.db3");
-    db.each("SELECT COUNT(*) as IsExist FROM browsers WHERE login = '" + username + "'", function (err, row) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("Is user exists : " + row)
-            if (row.IsExist == 0) {
-                console.log("insert")
-                db.run("INSERT INTO browsers VALUES ('" + username + "','" + actualBrowser + "')");
-            } else {
-                db.each("SELECT * FROM browsers WHERE login = '" + username + "'", function (err, item) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log("Last browser : " + item.navigator)
-                        if (item.navigator != actualBrowser) {
-                            console.log("update and send mail to : " + req.session.email);
-                            req.session.code = Math.floor(100000 + Math.random() * 900000)
-                            sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support ! Your validation code is : " + req.session.code)
-                            console.log('run db update')
-                            db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'");
-                            console.log('end of run')
-                            req.session.isNewBrowser = true
-                        } else {
-                            req.session.isNewBrowser = false;
-                        }
-                    }
-                });
-            }
-        }
-    });
+    await dbQuery()
 
     console.log("--- --- ---")
 }
+
+function dbQuery () {
+    return new Promise(function (resolve, reject) {
+        var db = new sqlite.Database("database.db3");
+        db.each("SELECT COUNT(*) as IsExist FROM browsers WHERE login = '" + username + "'", function (err, row) {
+            if (err) {
+                console.log(err);
+                reject(err)
+            } else {
+                console.log("Is user exists : " + row)
+                if (row.IsExist == 0) {
+                    console.log("insert")
+                    db.run("INSERT INTO browsers VALUES ('" + username + "','" + actualBrowser + "')");
+                    resolve("insert")
+                } else {
+                    db.each("SELECT * FROM browsers WHERE login = '" + username + "'", function (err, item) {
+                        if (err) {
+                            console.log(err);
+                            reject(err)
+                        } else {
+                            console.log("Last browser : " + item.navigator)
+                            if (item.navigator != actualBrowser) {
+                                console.log("update and send mail to : " + req.session.email);
+                                req.session.code = Math.floor(100000 + Math.random() * 900000)
+                                sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support ! Your validation code is : " + req.session.code)
+                                console.log('run db update')
+                                db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'");
+                                console.log('end of run')
+                                req.session.isNewBrowser = true
+                                resolve()
+                            } else {
+                                req.session.isNewBrowser = false;
+                                resolve()
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    })
+} 
