@@ -11,7 +11,8 @@ var transporter = nodemailer.createTransport({
     }
 });
 
-module.exports.sendEmail = async function (usermail, subject, mainText) {
+module.exports.sendEmail = function (usermail, subject, mainText) {
+    console.log('inside send email')
     if (subject === null) { // if the value is null have a defulat string there ( forgot to put it in the function)
         subject = 'New mail from portail.chatelet.fr'
     }
@@ -20,7 +21,7 @@ module.exports.sendEmail = async function (usermail, subject, mainText) {
     }
 
     //Send the mail
-    await transporter.sendMail({
+    transporter.sendMail({
         from: 'no.reply.chatelet.portail@gmail.com',
         to: usermail,
         subject: subject,

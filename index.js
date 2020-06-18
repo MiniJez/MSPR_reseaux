@@ -164,15 +164,10 @@ const BrowserCheck = (req) => {
                             console.log("update and send mail to : " + req.session.email);
                             req.session.code = Math.floor(100000 + Math.random() * 900000)
                             sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support ! Your validation code is : " + req.session.code)
-                            .then((res) => {
-                                console.log('run db update')
-                                db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'");
-                                console.log('end of run')
-                                req.session.isNewBrowser = true;
-                            })
-                            .catch((err) => {
-                                console.log(err)
-                            })
+                            console.log('run db update')
+                            db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'");
+                            console.log('end of run')
+                            req.session.isNewBrowser = true
                         } else {
                             req.session.isNewBrowser = false;
                         }
