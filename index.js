@@ -95,9 +95,7 @@ app.get('/login-validation', (req, res) => {
 
             req.session.code = Math.floor(100000 + Math.random() * 900000)
             mail.sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
-            if(req.session.isNewBrowser){
-                mail.sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support !");
-            }
+
             console.log(req.session.email)
             console.log(req.session.code)
 
@@ -173,7 +171,6 @@ function BrowserCheck(req){
             }
         }
     });
-
 
     console.log("--- --- ---")
 }
