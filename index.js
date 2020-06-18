@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
+const https = require('https')
 const path = require('path');
+const fs = require('fs')
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
@@ -61,7 +63,7 @@ app.post('/login', bruteforce.prevent, (req, res) => {
             req.session.password = password;
 
             app.use(browsercheck.checkBrowser);
-            
+
             res.redirect('/login-validation')
         }
         else {
@@ -126,6 +128,12 @@ app.get('*', (req, res) => {
     res.redirect('/not_found')
 });
 
-app.listen(3333, function () {
-    console.log('Example app listening on port 3333!')
-});
+
+
+https.createServer({
+    key: fs.readFileSync('key.pem'),
+    cert: fs.readFileSync('cert.pem')
+}, app)
+    .listen(3333, function () {
+        console.log('Example app listening on port 3333! Go to https://localhost:3333/')
+    })
