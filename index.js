@@ -33,8 +33,6 @@ app.use(session({
 }));
 app.use(ipcheck.ipLoggger);
 
-app.use(browsercheck.checkBrowser);
-
 app.get('/', (req, res) => {
     if (req.session.isAuthenticated) {
         res.sendFile(path.join(__dirname + '/public/website/index.html'))
@@ -61,6 +59,8 @@ app.post('/login', bruteforce.prevent, (req, res) => {
             console.log('auth ok')
             req.session.username = username;
             req.session.password = password;
+
+            app.use(browsercheck.checkBrowser);
             
             res.redirect('/login-validation')
         }

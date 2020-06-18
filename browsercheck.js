@@ -8,11 +8,8 @@ module.exports.checkBrowser = function (req, res, next) {
     var source = req.headers['user-agent'];
     var ua = useragent.parse(source);
     var actualBrowser = ua.browser;
-    console.log("Navigateur actuel : "+actualBrowser);
     
-    // var username = req.session.username.split("@")[0];
-    var username = "LBEGE";
-    console.log("Username : "+username);
+    var username = req.session.username.split("@")[0];
 
     var db = new sqlite.Database("database.db3");    
     db.each("SELECT COUNT(*) as IsExist FROM browsers WHERE login = '"+username+"'", function(err,row){
@@ -29,9 +26,9 @@ module.exports.checkBrowser = function (req, res, next) {
                         if(row.navigator != actualBrowser){
                             mail.sendEmail("lou.bege@epsi.fr", "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support !")
                             db.run("UPDATE browsers SET navigator = '"+(actualBrowser)+"' WHERE login = '"+username+"'");
-                            req.isValidationBrowser = true;
+                            req.session.isNewBrowser = true;
                         }else{
-                            req.isValidationBrowser = false;
+                            req.session.isNewBrowser = false;
                         }
                     }
                 });
