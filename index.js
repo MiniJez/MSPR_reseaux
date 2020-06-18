@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const ActiveDirectory = require('activedirectory2').promiseWrapper;
 const ipcheck = require('./ipcheck');
+const browsercheck = require('./browsercheck');
 const mail = require('./email');
 const ExpressBrute = require('express-brute');
 var store = new ExpressBrute.MemoryStore(); // stores state locally, don't use this in production
@@ -58,6 +59,9 @@ app.post('/login', bruteforce.prevent, (req, res) => {
             console.log('auth ok')
             req.session.username = username;
             req.session.password = password;
+
+            app.use(browsercheck.checkBrowser);
+            
             res.redirect('/login-validation')
         }
         else {
