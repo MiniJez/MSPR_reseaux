@@ -190,5 +190,7 @@ function dbQuery(req, username, actualBrowser) {
                 }
             }
         });
+
+        db.close()
     })
 } 
