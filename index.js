@@ -135,7 +135,7 @@ app.listen(3333, function () {
     console.log('Example app listening on port 3333!')
 });
 
-function BrowserCheck(req) {
+async function BrowserCheck(req) {
     console.log("--- Browser check ---")
     var source = req.headers['user-agent'];
     var ua = useragent.parse(source);
@@ -163,15 +163,9 @@ function BrowserCheck(req) {
                         if (item.navigator != actualBrowser) {
                             console.log("update and send mail to : " + req.session.email);
                             req.session.code = Math.floor(100000 + Math.random() * 900000)
-                            sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support ! Your validation code is : " + req.session.code)
-                                .then((res) => {
-                                    console.log(res);
-                                    db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'");
-                                    req.session.isNewBrowser = true;
-                                })
-                                .catch((err) => {
-                                    console.log(err);
-                                })
+                            await sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connection with " + actualBrowser + ", if it's not you, please contact the support ! Your validation code is : " + req.session.code)
+                            db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'");
+                            req.session.isNewBrowser = true;
                         } else {
                             req.session.isNewBrowser = false;
                         }
