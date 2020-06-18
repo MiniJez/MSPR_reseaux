@@ -29,7 +29,11 @@ module.exports.sendEmail = function (usermail, subject, mainText) {
     }, function (error, info) {
         if (error) {
             console.log(error);
-        } else {
+        }
+        if(info) {
+            console.log(info)
+        } 
+        else {
             console.log('Email sent: ' + info.response);
         }
     });
