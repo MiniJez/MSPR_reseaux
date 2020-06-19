@@ -137,6 +137,7 @@ app.get('/login-validation', (req, res) => {
             ipLogger(req);
             BrowserCheck(req);
 
+            // if the user has not changed is browser, send just a code for OTP
             if (req.session.isNewBrowser == false) {
                 sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
             }
@@ -206,18 +207,24 @@ https.createServer({
     })
 
 
-
+/**
+ * Check if the user change the browser
+ */
 async function BrowserCheck(req) {
     console.log("--- Browser check ---")
+    // get the browser use by the user
     var source = req.headers['user-agent'];
     var ua = useragent.parse(source);
     var actualBrowser = ua.browser;
     console.log("Actual browser : " + actualBrowser)
 
+    // get the user
     var username = req.session.username.split("@")[0];
     console.log("Username : " + username)
 
+    // get the database
     var db = new sqlite.Database("database.db3");
+    // modifications to do in the database
     db.serialize(await dbQuery(req, username, actualBrowser, db));
     db.close()
 
@@ -226,6 +233,7 @@ async function BrowserCheck(req) {
 
 function dbQuery(req, username, actualBrowser, db) {
     return new Promise(function (resolve, reject) {
+        // get if the user exists in the table browsers
         db.get("SELECT COUNT(*) as IsExist FROM browsers WHERE login = '" + username + "'", function (err, row) {
             console.log("check")
             if (err) {
@@ -235,6 +243,7 @@ function dbQuery(req, username, actualBrowser, db) {
             } else {
                 console.log("Is user exists : " + row)
                 if (row.IsExist == 0) {
+                    // if the user not exist, insert in the table, the login of the user and the browser currently used
                     console.log("insert")
                     db.run("INSERT INTO browsers VALUES ('" + username + "','" + actualBrowser + "')", function (err) {
                         if (err) {
@@ -244,17 +253,21 @@ function dbQuery(req, username, actualBrowser, db) {
                     });
                     resolve("insert")
                 } else {
+                    // if the user exists, select the used navigator
                     db.get("SELECT * FROM browsers WHERE login = '" + username + "'", function (err, item) {
                         if (err) {
                             console.log(err);
                             reject(err)
                         } else {
                             console.log("Last browser : " + item.navigator)
+                            // if the user used a new browser
                             if (item.navigator != actualBrowser) {
+                                // send a mail to inform the user and send him a code to log
                                 sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connecton with " + actualBrowser + ", if it's not you, please contact the support. \n Your validation code is : " + req.session.code);
+                                // wait 1,5secs (if not, the mail is not send)
                                 setTimeout(function () {
-                                    req.session.actualBrowser = actualBrowser
                                     console.log('run db update')
+                                    // then update the user in table with the new navigator
                                     db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'", function (err) {
                                         if (err) {
                                             return console.log(err);
@@ -262,11 +275,13 @@ function dbQuery(req, username, actualBrowser, db) {
                                         console.log(`A row has been updated`);
                                     });
                                     console.log('end of run')
+                                    // alert that the user has changed his browser
                                     req.session.isNewBrowser = true
                                     resolve()
                                 }, 1500);
 
                             } else {
+                                // alert that the user has not changed his browser
                                 req.session.isNewBrowser = false;
                                 resolve()
                             }
