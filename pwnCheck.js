@@ -1,4 +1,3 @@
-const axios = require('axios');
 const https = require("https");
 const { sendEmail } = require('./email');
 const sqlite = require("sqlite3").verbose();

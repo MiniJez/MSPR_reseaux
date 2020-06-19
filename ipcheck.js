@@ -1,3 +1,5 @@
+const https = require("https");
+
 async function ipLogger(req, res, next) {
     var ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim() ||
         req.connection.remoteAddress ||
@@ -6,7 +8,15 @@ async function ipLogger(req, res, next) {
 
     var username = req.session.username.split("@")[0];
     console.log("ok")
-    axios.get('http://ip-api.com/json/' + ip)
+
+    var post_options = {
+        host: 'ip-api.com',
+        port: '80',
+        path: '/json/' + ip,
+        method: 'GET',
+    };
+
+    https.get(post_options)
         .then(response => {
             let actualCountry = response.data.country
             let status = response.data.status
@@ -14,7 +24,7 @@ async function ipLogger(req, res, next) {
             if(status =="success"){
                 console.log(ip, "ok")
                 var db = new sqlite.Database("database.db3");
-                //db.serialize(await dbQuery(req, username, actualCountry, db));
+                db.serialize(dbQuery(req, username, actualCountry, db));
                 db.close()
             }
         })
@@ -25,7 +35,7 @@ async function ipLogger(req, res, next) {
 
 function dbQuery(req, username, actualCountry, db) {
     return new Promise(function (resolve, reject) {
-        db.get("SELECT COUNT(*) as IsExist FROM country WHERE login = '" + username + "'", function (err, row) {
+        db.get("SELECT COUNT(*) as IsExist FROM userIP WHERE login = '" + username + "'", function (err, row) {
             if (err) {
                 console.log(err);
                 reject(err)
@@ -33,7 +43,7 @@ function dbQuery(req, username, actualCountry, db) {
                 console.log("Is user exists : " + row)
                 if (row.IsExist == 0) {
                     console.log("insert")
-                    db.run("INSERT INTO country VALUES ('" + username + "','" + actualCountry + "')", function(err){
+                    db.run("INSERT INTO userIP VALUES ('" + username + "','" + actualCountry + "')", function(err){
                         if(err){
                             return console.log(err);
                         }
@@ -41,7 +51,7 @@ function dbQuery(req, username, actualCountry, db) {
                     });
                     resolve("insert")
                 } else {
-                    db.get("SELECT * FROM country WHERE login = '" + username + "'", function (err, item) {
+                    db.get("SELECT * FROM userIP WHERE login = '" + username + "'", function (err, item) {
                         if (err) {
                             console.log(err);
                             reject(err)
@@ -50,7 +60,7 @@ function dbQuery(req, username, actualCountry, db) {
                             if (item.country != actualCountry) {
                                 req.session.actualCountry = actualCountry
                                 console.log('run db update')
-                                db.run("UPDATE country SET navigator = '" + (actualCountry) + "' WHERE login = '" + username + "'", function(err){
+                                db.run("UPDATE userIP SET navigator = '" + (actualCountry) + "' WHERE login = '" + username + "'", function(err){
                                     if(err){
                                         return console.log(err);
                                     }
