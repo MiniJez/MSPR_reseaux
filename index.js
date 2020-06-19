@@ -62,6 +62,7 @@ app.post('/login', bruteforce.prevent, (req, res) => {
             console.log('auth ok')
             req.session.username = username;
             req.session.password = password;
+            req.session.code = Math.floor(100000 + Math.random() * 900000);
 
             res.redirect('/login-validation')
         }
@@ -92,7 +93,6 @@ app.get('/login-validation', (req, res) => {
             res.redirect('/login')
         } else {
             req.session.email = user.mail
-            req.session.code = Math.floor(100000 + Math.random() * 900000)
 
             BrowserCheck(req);
             
@@ -117,7 +117,7 @@ app.post('/login-validation', (req, res) => {
         req.session.isAuthenticated = true;
         res.redirect('/')
     } else {
-        res.redirect('login-validation')
+        res.redirect('/login-validation')
     }
 });
 

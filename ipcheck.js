@@ -22,10 +22,10 @@ module.exports.ipLoggger = function (req, res, next) {
             
         })
         .catch(error => {
-            console.log(error);
+            // console.log(error);
         });
 
-    console.log('ip ', ip)
+    // console.log('ip ', ip)
 
 
     next()
