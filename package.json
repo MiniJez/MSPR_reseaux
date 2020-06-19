@@ -20,6 +20,7 @@
   "homepage": "https://github.com/MiniJez/MSPR_reseaux#readme",
   "dependencies": {
     "activedirectory2": "^1.3.0",
+    "axios": "^0.19.2",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
     "dotenv": "^8.2.0",
