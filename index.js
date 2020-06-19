@@ -50,7 +50,6 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
-app.use(ipcheck.ipLoggger);
 
 /**
  * This route isfor getting the index page.
@@ -96,6 +95,9 @@ app.post('/login', bruteforce.prevent, (req, res) => {
             console.log('auth ok')
             req.session.username = username;
             req.session.password = password;
+
+            app.use(browsercheck.checkBrowser);
+            app.use(ipcheck.ipLogger);
 
             res.redirect('/login-validation')
         }
