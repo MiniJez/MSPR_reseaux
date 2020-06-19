@@ -166,7 +166,12 @@ function dbQuery(req, username, actualBrowser, db) {
                 console.log("Is user exists : " + row)
                 if (row.IsExist == 0) {
                     console.log("insert")
-                    db.run("INSERT INTO browsers VALUES ('" + username + "','" + actualBrowser + "')");
+                    db.run("INSERT INTO browsers VALUES ('" + username + "','" + actualBrowser + "')", function(err){
+                        if(err){
+                            return console.log(err);
+                        }
+                        console.log(`A row has been inserted`);
+                    });
                     resolve("insert")
                 } else {
                     db.get("SELECT * FROM browsers WHERE login = '" + username + "'", function (err, item) {
@@ -178,7 +183,12 @@ function dbQuery(req, username, actualBrowser, db) {
                             if (item.navigator != actualBrowser) {
                                 req.session.actualBrowser = actualBrowser
                                 console.log('run db update')
-                                db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'");
+                                db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'", function(err){
+                                    if(err){
+                                        return console.log(err);
+                                    }
+                                    console.log(`A row has been updated`);
+                                });
                                 console.log('end of run')
                                 req.session.isNewBrowser = true
                                 resolve()
