@@ -2,9 +2,9 @@ require('dotenv').config()
 const https = require('https')
 const path = require('path');
 const fs = require('fs')
-const ipcheck = require('./ipcheck');
+const { ipLogger } = require('./ipcheck');
 const { sendEmail } = require('./email');
-const { BrowserCheck } = require('./browsercheck');
+//const { BrowserCheck } = require('./browsercheck');
 const sqlite = require("sqlite3").verbose();
 
 //express
@@ -34,9 +34,9 @@ const ad = new ActiveDirectory(config);
 
 
 //Cron 
-const {CheckPwn} = require('./pwnCheck')
+const { CheckPwn } = require('./pwnCheck')
 const CronJob = require('cron').CronJob;
-var job = new CronJob('5 4 * * * *', function() {
+var job = new CronJob('5 4 * * * *', function () {
     //TODO : do for all email adresses
     CheckPwn("richardadrien0@gmail.com", "lou.bege@epsi.fr");
 }, null, true, 'America/Los_Angeles');
@@ -51,7 +51,6 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
-app.use(ipcheck.ipLogger);
 
 /**
  * This route isfor getting the index page.
@@ -97,7 +96,7 @@ app.post('/login', bruteforce.prevent, (req, res) => {
             console.log('auth ok')
             req.session.username = username;
             req.session.password = password;
-         
+
             res.redirect('/login-validation')
         }
         else {
@@ -135,9 +134,9 @@ app.get('/login-validation', (req, res) => {
             req.session.email = user.mail
             req.session.code = Math.floor(100000 + Math.random() * 900000)
 
-            ipcheck(req);
+            ipLogger(req);
             BrowserCheck(req);
-            
+
             if (req.session.isNewBrowser == false) {
                 sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
             }
@@ -205,3 +204,76 @@ https.createServer({
     .listen(3333, function () {
         console.log('Example app listening on port 3333! Go to https://localhost:3333/')
     })
+
+
+
+async function BrowserCheck(req) {
+    console.log("--- Browser check ---")
+    var source = req.headers['user-agent'];
+    var ua = useragent.parse(source);
+    var actualBrowser = ua.browser;
+    console.log("Actual browser : " + actualBrowser)
+
+    var username = req.session.username.split("@")[0];
+    console.log("Username : " + username)
+
+    var db = new sqlite.Database("database.db3");
+    db.serialize(await dbQuery(req, username, actualBrowser, db));
+    db.close()
+
+    console.log("--- --- ---")
+}
+
+function dbQuery(req, username, actualBrowser, db) {
+    return new Promise(function (resolve, reject) {
+        db.get("SELECT COUNT(*) as IsExist FROM browsers WHERE login = '" + username + "'", function (err, row) {
+            console.log("check")
+            if (err) {
+                console.log("error")
+                console.log(err);
+                reject(err)
+            } else {
+                console.log("Is user exists : " + row)
+                if (row.IsExist == 0) {
+                    console.log("insert")
+                    db.run("INSERT INTO browsers VALUES ('" + username + "','" + actualBrowser + "')", function (err) {
+                        if (err) {
+                            return console.log(err);
+                        }
+                        console.log(`A row has been inserted`);
+                    });
+                    resolve("insert")
+                } else {
+                    db.get("SELECT * FROM browsers WHERE login = '" + username + "'", function (err, item) {
+                        if (err) {
+                            console.log(err);
+                            reject(err)
+                        } else {
+                            console.log("Last browser : " + item.navigator)
+                            if (item.navigator != actualBrowser) {
+                                sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connecton with " + actualBrowser + ", if it's not you, please contact the support. \n Your validation code is : " + req.session.code);
+                                setTimeout(function () {
+                                    req.session.actualBrowser = actualBrowser
+                                    console.log('run db update')
+                                    db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'", function (err) {
+                                        if (err) {
+                                            return console.log(err);
+                                        }
+                                        console.log(`A row has been updated`);
+                                    });
+                                    console.log('end of run')
+                                    req.session.isNewBrowser = true
+                                    resolve()
+                                }, 1500);
+
+                            } else {
+                                req.session.isNewBrowser = false;
+                                resolve()
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    })
+} 

@@ -1,36 +1,44 @@
-const https = require("https");
+const http = require("http");
 
 async function ipLogger(req, res, next) {
+    console.log("--- Ip Logger ---")
     var ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim() ||
         req.connection.remoteAddress ||
         req.socket.remoteAddress ||
         req.connection.socket.remoteAddress;
 
+    console.log(req.headers['x-forwarded-for'])
+    console.log(req.connection.remoteAddress)
+    console.log(req.socket.remoteAddress)
+
     var username = req.session.username.split("@")[0];
-    console.log("ok")
+    console.log("ip : " + ip)
+    console.log("username : " + username)
 
-    var post_options = {
-        host: 'ip-api.com',
-        port: '80',
-        path: '/json/' + ip,
-        method: 'GET',
-    };
-
-    https.get(post_options)
-        .then(response => {
-            let actualCountry = response.data.country
-            let status = response.data.status
-
-            if(status =="success"){
-                console.log(ip, "ok")
-                var db = new sqlite.Database("database.db3");
-                db.serialize(dbQuery(req, username, actualCountry, db));
-                db.close()
-            }
-        })
-        .catch(error => {
-            // console.log(error);
+    http.get("http://ip-api.com/json/" + ip, (respAPi) => {
+        //Reads the response and addes it to a buffer
+        respAPi.setEncoding('utf8');
+        let response = '';
+        respAPi.on('data', (chunk) => {
+            response += chunk;
         });
+        respAPi.on('end', () => {
+            // console.log(JSON.parse(response)); //when the buffer is full print it 
+        });
+
+        console.log(response);
+        if (respAPi.statusCode === 200) {
+            let actualCountry = response.country
+            console.log(ip, "ok")
+            var db = new sqlite.Database("database.db3");
+            db.serialize(dbQuery(req, username, actualCountry, db));
+            db.close()
+        }
+
+
+    });
+
+    console.log("--- --- ---")
 }
 
 function dbQuery(req, username, actualCountry, db) {
@@ -43,8 +51,8 @@ function dbQuery(req, username, actualCountry, db) {
                 console.log("Is user exists : " + row)
                 if (row.IsExist == 0) {
                     console.log("insert")
-                    db.run("INSERT INTO userIP VALUES ('" + username + "','" + actualCountry + "')", function(err){
-                        if(err){
+                    db.run("INSERT INTO userIP VALUES ('" + username + "','" + actualCountry + "')", function (err) {
+                        if (err) {
                             return console.log(err);
                         }
                         console.log(`A row has been inserted`);
@@ -60,8 +68,8 @@ function dbQuery(req, username, actualCountry, db) {
                             if (item.country != actualCountry) {
                                 req.session.actualCountry = actualCountry
                                 console.log('run db update')
-                                db.run("UPDATE userIP SET navigator = '" + (actualCountry) + "' WHERE login = '" + username + "'", function(err){
-                                    if(err){
+                                db.run("UPDATE userIP SET navigator = '" + (actualCountry) + "' WHERE login = '" + username + "'", function (err) {
+                                    if (err) {
                                         return console.log(err);
                                     }
                                     console.log(`A row has been updated`);
@@ -79,6 +87,6 @@ function dbQuery(req, username, actualCountry, db) {
             }
         });
     })
-} 
+}
 
 module.exports.ipLogger = ipLogger;

@@ -1,4 +1,4 @@
-var express = require('express')
+/*var express = require('express')
 var useragent = require('express-useragent')
 var sqlite = require("sqlite3")
 const { sendEmail } = require('./email');
@@ -24,7 +24,9 @@ module.exports.BrowserCheck = async (req) => {
 function dbQuery(req, username, actualBrowser, db) {
     return new Promise(function (resolve, reject) {
         db.get("SELECT COUNT(*) as IsExist FROM browsers WHERE login = '" + username + "'", function (err, row) {
+            console.log("check")
             if (err) {
+                console.log("error")
                 console.log(err);
                 reject(err)
             } else {
@@ -71,4 +73,4 @@ function dbQuery(req, username, actualBrowser, db) {
             }
         });
     })
-} 
+} */
