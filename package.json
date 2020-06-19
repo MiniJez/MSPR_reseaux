@@ -13,7 +13,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/MiniJez/MSPR_reseaux/issues"
   },
@@ -24,7 +24,9 @@
     "body-parser": "^1.19.0",
     "bowser": "^2.9.0",
     "cookie-parser": "^1.4.5",
+    "core-util-is": "^1.0.2",
     "detect-browser": "^5.1.1",
+    "cron": "^1.8.2",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-brute": "^1.0.1",
@@ -32,7 +34,7 @@
     "express-useragent": "^1.0.13",
     "nodemailer": "^6.4.10",
     "nodemon": "^2.0.4",
-    "sqlite3": "^4.2.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "sqlite3": "^4.2.0"
   }
 }
