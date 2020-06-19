@@ -87,4 +87,4 @@ module.exports.CheckPwn = function (emailToCheck, sendingEmail) {
     }
 };
 
-this.CheckPwn("richardadrien0@gmail.com", "lou.bege@epsi.fr");
+//this.CheckPwn("richardadrien0@gmail.com", "lou.bege@epsi.fr");
