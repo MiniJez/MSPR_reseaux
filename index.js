@@ -139,10 +139,6 @@ app.get('*', (req, res) => {
     res.redirect('/not_found')
 });
 
-app.listen(3333, function () {
-    console.log('Example app listening on port 3333!')
-});
-
 const BrowserCheck = async (req) => {
     console.log("--- Browser check ---")
     var source = req.headers['user-agent'];
