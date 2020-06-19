@@ -3,6 +3,7 @@ const app = express()
 const https = require('https')
 const path = require('path');
 const fs = require('fs')
+const axios = require('axios');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
@@ -63,7 +64,7 @@ app.post('/login', bruteforce.prevent, (req, res) => {
             req.session.password = password;
 
             app.use(browsercheck.checkBrowser);
-            app.use(ipcheck.ipLoggger);
+            app.use(ipcheck.ipLogger);
 
             res.redirect('/login-validation')
         }

@@ -1,26 +1,20 @@
-var express = require('express')
-
-const axios = require('axios');
-
-
-
-module.exports.ipLoggger = function (req, res, next) {
-
+async function ipLogger(req, res, next) {
     var ip = (req.headers['x-forwarded-for'] || '').split(',').pop().trim() ||
         req.connection.remoteAddress ||
         req.socket.remoteAddress ||
         req.connection.socket.remoteAddress;
 
     var username = req.session.username.split("@")[0];
-
+    console.log("ok")
     axios.get('http://ip-api.com/json/' + ip)
         .then(response => {
             let actualCountry = response.data.country
             let status = response.data.status
 
             if(status =="success"){
+                console.log(ip, "ok")
                 var db = new sqlite.Database("database.db3");
-                db.serialize(await dbQuery(req, username, actualCountry, db));
+                //db.serialize(await dbQuery(req, username, actualCountry, db));
                 db.close()
             }
         })
@@ -76,3 +70,5 @@ function dbQuery(req, username, actualCountry, db) {
         });
     })
 } 
+
+module.exports.ipLogger = ipLogger;
