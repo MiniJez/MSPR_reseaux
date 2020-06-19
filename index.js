@@ -150,7 +150,7 @@ const BrowserCheck = async (req) => {
     console.log("Username : " + username)
 
     var db = new sqlite.Database("database.db3");
-    await dbQuery(req, username, actualBrowser, db)
+    db.serialize(await dbQuery(req, username, actualBrowser, db));
     db.close()
 
     console.log("--- --- ---")
