@@ -36,6 +36,12 @@ app.use(session({
 }));
 app.use(ipcheck.ipLoggger);
 
+/**
+ * This route isfor getting the index page.
+ * @route GET /
+ * @returns {object} 200 - the index page
+ * @returns {Error}  default - Unexpected error
+ */
 app.get('/', (req, res) => {
     if (req.session.isAuthenticated) {
         res.sendFile(path.join(__dirname + '/public/website/index.html'))
@@ -44,10 +50,22 @@ app.get('/', (req, res) => {
     }
 });
 
+/**
+ * This route is for getting the login page
+ * @route GET /login
+ * @returns {object} 200 - Uthe login page
+ * @returns {Error}  default - Unexpected error
+ */
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname + '/public/login.html'))
 });
 
+/**
+ * This route is for login the user in
+ * @route POST /login
+ * @returns {object} 301 - redirectyion to the correct page
+ * @returns {Error}  default - Unexpected error
+ */
 app.post('/login', bruteforce.prevent, (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
@@ -62,7 +80,6 @@ app.post('/login', bruteforce.prevent, (req, res) => {
             console.log('auth ok')
             req.session.username = username;
             req.session.password = password;
-            req.session.code = Math.floor(100000 + Math.random() * 900000);
 
             res.redirect('/login-validation')
         }
@@ -72,6 +89,12 @@ app.post('/login', bruteforce.prevent, (req, res) => {
     });
 });
 
+/**
+ * This route is for when the user is correctly authenticated
+ * @route GET /login-validation
+ * @returns {object} 200 - the page that the user is supposed to acces
+ * @returns {Error}  default - Unexpected error
+ */
 app.get('/login-validation', (req, res) => {
     console.log("login-validation")
     console.log(req.session.username)
@@ -93,6 +116,7 @@ app.get('/login-validation', (req, res) => {
             res.redirect('/login')
         } else {
             req.session.email = user.mail
+            req.session.code = Math.floor(100000 + Math.random() * 900000)
 
             BrowserCheck(req);
             
@@ -108,6 +132,12 @@ app.get('/login-validation', (req, res) => {
     });
 })
 
+/**
+ * This route is for validating the users connection
+ * @route POST /not_found
+ * @returns {object} 301 - refirection to the correct page
+ * @returns {Error}  default - Unexpected error
+ */
 app.post('/login-validation', (req, res) => {
     let code = req.body.code;
     console.log('post login-validation')
@@ -117,18 +147,35 @@ app.post('/login-validation', (req, res) => {
         req.session.isAuthenticated = true;
         res.redirect('/')
     } else {
-        res.redirect('/login-validation')
+        res.redirect('login-validation')
     }
 });
 
+/**
+ * This route is for the 404/Not found page.
+ * @route GET /not_found
+ * @returns {object} 200 - 404 page
+ * @returns {Error}  default - Unexpected error
+ */
 app.get('/not_found', (req, res) => {
     res.status(404).sendFile(path.join(__dirname + '/public/error_pages/not_found.html'))
 });
 
+/**
+ * This route is for the 404/Not found page.
+ * @route GET /unauthorized
+ * @returns {object} 401 - Unauthorized page
+ * @returns {Error}  default - Unexpected error
+ */
 app.get('/unauthorized', (req, res) => {
     res.status(401).sendFile(path.join(__dirname + '/public/error_pages/unauthorized.html'))
 });
 
+/**
+ * This is in case the route is not define, redirect to the 404 page
+ * @route GET /*
+ * @returns {object} 301 - Redirection to not found page
+ */
 app.get('*', (req, res) => {
     res.redirect('/not_found')
 });
