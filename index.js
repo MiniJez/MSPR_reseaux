@@ -1,16 +1,20 @@
-const express = require('express')
-const app = express()
+require('dotenv').config()
 const https = require('https')
 const path = require('path');
 const fs = require('fs')
+const ipcheck = require('./ipcheck');
+const { sendEmail } = require('./email');
+const sqlite = require("sqlite3").verbose();
+
+//express
+const express = require('express')
+const useragent = require('express-useragent')
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const ActiveDirectory = require('activedirectory2').promiseWrapper;
-const ipcheck = require('./ipcheck');
-const { sendEmail } = require('./email');
-const useragent = require('express-useragent')
-const sqlite = require("sqlite3").verbose();
+const app = express()
+
+//Brute forcing
 const ExpressBrute = require('express-brute');
 var store = new ExpressBrute.MemoryStore(); // stores state locally, don't use this in production
 var bruteforce = new ExpressBrute(store, {
@@ -18,13 +22,25 @@ var bruteforce = new ExpressBrute(store, {
     minWait: 500, //500 miliseconds
     maxWait: 1000 * 60 * 15 // 15 minutes
 });
+
+//Active directory
+const ActiveDirectory = require('activedirectory2').promiseWrapper;
 const config = {
     url: 'ldap://portail.chatelet.fr',
     baseDN: 'dc=portail,dc=chatelet,dc=fr'
 };
 const ad = new ActiveDirectory(config);
 
-require('dotenv').config()
+
+//Cron 
+const {CheckPwn} = require('./pwnCheck')
+const CronJob = require('cron').CronJob;
+var job = new CronJob('* * * * * *', function() {
+    //TODO : do for all email adresses
+    CheckPwn("richardadrien0@gmail.com", "lou.bege@epsi.fr");
+}, null, true, 'America/Los_Angeles');
+job.start();
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
