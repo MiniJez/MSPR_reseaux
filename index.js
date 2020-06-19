@@ -94,16 +94,8 @@ app.get('/login-validation', (req, res) => {
             req.session.email = user.mail
             req.session.code = Math.floor(100000 + Math.random() * 900000)
 
-            BrowserCheck(req).then(() => {
-                // if (req.session.isNewBrowser == false) {
-                //     sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
-                // }
-
-                // console.log(req.session.email)
-                // console.log(req.session.code)
-
-                // res.sendFile(path.join(__dirname + '/public/login-validation.html'))
-            })
+            BrowserCheck(req);
+            
             if (req.session.isNewBrowser == false) {
                 sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
             }
