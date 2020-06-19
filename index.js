@@ -94,22 +94,18 @@ app.get('/login-validation', (req, res) => {
             res.redirect('/login')
         } else {
             req.session.email = user.mail
+            req.session.code = Math.floor(100000 + Math.random() * 900000)
 
-            BrowserCheck(req).then(() => {
-                if (req.session.isNewBrowser == false) {
-                    req.session.code = Math.floor(100000 + Math.random() * 900000)
-                    sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
-                } else {
-                    console.log('new browser email')
-                    req.session.code = Math.floor(100000 + Math.random() * 900000)
-                    sendEmail("lou.bege@epsi.fr", "new browser", "test")
-                }
+            BrowserCheck(req);
+            
+            if (req.session.isNewBrowser == false) {
+                sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
+            }
 
-                console.log(req.session.email)
-                console.log(req.session.code)
+            console.log(req.session.email)
+            console.log(req.session.code)
 
-                res.sendFile(path.join(__dirname + '/public/login-validation.html'))
-            })
+            res.sendFile(path.join(__dirname + '/public/login-validation.html'))
         }
     });
 })
@@ -181,17 +177,21 @@ function dbQuery(req, username, actualBrowser, db) {
                         } else {
                             console.log("Last browser : " + item.navigator)
                             if (item.navigator != actualBrowser) {
-                                req.session.actualBrowser = actualBrowser
-                                console.log('run db update')
-                                db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'", function(err){
-                                    if(err){
-                                        return console.log(err);
-                                    }
-                                    console.log(`A row has been updated`);
-                                });
-                                console.log('end of run')
-                                req.session.isNewBrowser = true
-                                resolve()
+                                sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connecton with "+actualBrowser+", if it's not you, please contact the support. \n Your validation code is : "+req.session.code);
+                                setTimeout(function(){
+                                    req.session.actualBrowser = actualBrowser
+                                    console.log('run db update')
+                                    db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'", function(err){
+                                        if(err){
+                                            return console.log(err);
+                                        }
+                                        console.log(`A row has been updated`);
+                                    });
+                                    console.log('end of run')
+                                    req.session.isNewBrowser = true
+                                    resolve()
+                                }, 1500);
+                                
                             } else {
                                 req.session.isNewBrowser = false;
                                 resolve()
