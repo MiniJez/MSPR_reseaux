@@ -2,9 +2,9 @@
   "name": "MSPR_reseaux",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./script/index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "nodemon ./script/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -25,16 +25,19 @@
     "bowser": "^2.9.0",
     "cookie-parser": "^1.4.5",
     "core-util-is": "^1.0.2",
-    "detect-browser": "^5.1.1",
     "cron": "^1.8.2",
+    "detect-browser": "^5.1.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-brute": "^1.0.1",
     "express-session": "^1.17.1",
     "express-useragent": "^1.0.13",
+    "geoip-lite": "^1.4.2",
     "nodemailer": "^6.4.10",
     "nodemon": "^2.0.4",
     "path": "^0.12.7",
+    "public-ip": "^4.0.1",
+    "sqlite-async": "^1.1.0",
     "sqlite3": "^4.2.0"
   }
 }

@@ -2,14 +2,12 @@ require('dotenv').config()
 const https = require('https')
 const path = require('path');
 const fs = require('fs')
-const { ipLogger } = require('./ipcheck');
-const { sendEmail } = require('./email');
-//const { BrowserCheck } = require('./browsercheck');
-const sqlite = require("sqlite3").verbose();
+const { compareIpCountry } = require('./script/ipcheck');
+const { browserCheck } = require('./script/browsercheck');
+const axios = require('axios').default
 
 //express
 const express = require('express')
-const useragent = require('express-useragent')
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
@@ -34,7 +32,8 @@ const ad = new ActiveDirectory(config);
 
 
 //Cron 
-const { CheckPwn } = require('./pwnCheck')
+const { CheckPwn } = require('./script/pwnCheck');
+const { send } = require('process');
 const CronJob = require('cron').CronJob;
 var job = new CronJob('5 4 * * * *', function () {
     //TODO : do for all email adresses
@@ -85,7 +84,6 @@ app.get('/login', (req, res) => {
 app.post('/login', bruteforce.prevent, (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
-    console.log(username, password)
 
     ad.authenticate(username, password, function (err, auth) {
         if (err) {
@@ -111,10 +109,8 @@ app.post('/login', bruteforce.prevent, (req, res) => {
  * @returns {object} 200 - the page that the user is supposed to acces
  * @returns {Error}  default - Unexpected error
  */
-app.get('/login-validation', (req, res) => {
+app.get('/login-validation', async (req, res) => {
     console.log("login-validation")
-    console.log(req.session.username)
-    console.log(req.session.password)
 
     const ad2 = new ActiveDirectory({
         url: 'ldap://portail.chatelet.fr',
@@ -123,7 +119,7 @@ app.get('/login-validation', (req, res) => {
         bindCredentials: req.session.password
     });
 
-    ad2.findUser(req.session.username, function (err, user) {
+    ad2.findUser(req.session.username, async function (err, user) {
         if (err) {
             console.log('ERROR-findUser: ' + JSON.stringify(err));
             res.redirect('/login')
@@ -134,16 +130,41 @@ app.get('/login-validation', (req, res) => {
             req.session.email = user.mail
             req.session.code = Math.floor(100000 + Math.random() * 900000)
 
-            ipLogger(req);
-            BrowserCheck(req);
+            await browserCheck(req)
+            await compareIpCountry(req)
 
-            // if the user has not changed is browser, send just a code for OTP
-            if (req.session.isNewBrowser == false) {
-                sendEmail(req.session.email, "Code de vérification pour portail.chatelet.fr", "Your validation code is : " + req.session.code)
+            if (req.session.isNewCountry) {
+                console.log("Send mail for new country")
+                axios.post('http://localhost:3334', {
+                    email: req.session.email,
+                    subject: "Connexion depuis un pays étrangé à portail.chatelet.fr",
+                    mainText: `Nouvelle connexion depuis le pays : ${req.session.country}. Si ce n'est pas vous, merci de contacter le support. Votre code de validation est : ${req.session.code}`
+                })
+            } else if (req.session.isNewBrowser) {
+                console.log("Send mail for new browser")
+                console.log(req.session.email, req.session.actualBrowser, req.session.code)
+                axios.post('http://localhost:3334', {
+                    email: req.session.email,
+                    subject: "Connexion avec un nouveau navigateur à portail.chatelet.fr",
+                    mainText: "Nouvelle connexion avec le naviguateur " + req.session.actualBrowser + ", Si ce n'est pas vous, merci de contacter le support. \n Votre code de validation est : " + req.session.code
+                })
+            } else {
+                console.log("Send mail for validation code")
+                axios.post('http://localhost:3334', {
+                    email: req.session.email,
+                    subject: "Code de vérification pour portail.chatelet.fr",
+                    mainText: "Votre code de validation est : " + req.session.code
+                })
             }
 
-            console.log(req.session.email)
-            console.log(req.session.code)
+            if (req.session.isNewIp) {
+                console.log("Send mail for new ip")
+                axios.post('http://localhost:3334', {
+                    email: req.session.email,
+                    subject: "Nouvelle adresse ip détecté",
+                    mainText: "Nous avons détecter une nouvelle adresse ip de connexion. Si ce n'est pas vous, merci de contacter le support."
+                })
+            }
 
             res.sendFile(path.join(__dirname + '/public/login-validation.html'))
         }
@@ -205,90 +226,3 @@ https.createServer({
     .listen(3333, function () {
         console.log('Example app listening on port 3333! Go to https://localhost:3333/')
     })
-
-
-/**
- * Check if the user change the browser
- */
-async function BrowserCheck(req) {
-    console.log("--- Browser check ---")
-    // get the browser use by the user
-    var source = req.headers['user-agent'];
-    var ua = useragent.parse(source);
-    var actualBrowser = ua.browser;
-    console.log("Actual browser : " + actualBrowser)
-
-    // get the user
-    var username = req.session.username.split("@")[0];
-    console.log("Username : " + username)
-
-    // get the database
-    var db = new sqlite.Database("database.db3");
-    // modifications to do in the database
-    db.serialize(await dbQuery(req, username, actualBrowser, db));
-    db.close()
-
-    console.log("--- --- ---")
-}
-
-function dbQuery(req, username, actualBrowser, db) {
-    return new Promise(function (resolve, reject) {
-        // get if the user exists in the table browsers
-        db.get("SELECT COUNT(*) as IsExist FROM browsers WHERE login = '" + username + "'", function (err, row) {
-            console.log("check")
-            if (err) {
-                console.log("error")
-                console.log(err);
-                reject(err)
-            } else {
-                console.log("Is user exists : " + row)
-                if (row.IsExist == 0) {
-                    // if the user not exist, insert in the table, the login of the user and the browser currently used
-                    console.log("insert")
-                    db.run("INSERT INTO browsers VALUES ('" + username + "','" + actualBrowser + "')", function (err) {
-                        if (err) {
-                            return console.log(err);
-                        }
-                        console.log(`A row has been inserted`);
-                    });
-                    resolve("insert")
-                } else {
-                    // if the user exists, select the used navigator
-                    db.get("SELECT * FROM browsers WHERE login = '" + username + "'", function (err, item) {
-                        if (err) {
-                            console.log(err);
-                            reject(err)
-                        } else {
-                            console.log("Last browser : " + item.navigator)
-                            // if the user used a new browser
-                            if (item.navigator != actualBrowser) {
-                                // send a mail to inform the user and send him a code to log
-                                sendEmail(req.session.email, "Connexion avec un nouveau navigateur à portail.chatelet.fr", "You have a new connecton with " + actualBrowser + ", if it's not you, please contact the support. \n Your validation code is : " + req.session.code);
-                                // wait 1,5secs (if not, the mail is not send)
-                                setTimeout(function () {
-                                    console.log('run db update')
-                                    // then update the user in table with the new navigator
-                                    db.run("UPDATE browsers SET navigator = '" + (actualBrowser) + "' WHERE login = '" + username + "'", function (err) {
-                                        if (err) {
-                                            return console.log(err);
-                                        }
-                                        console.log(`A row has been updated`);
-                                    });
-                                    console.log('end of run')
-                                    // alert that the user has changed his browser
-                                    req.session.isNewBrowser = true
-                                    resolve()
-                                }, 1500);
-
-                            } else {
-                                // alert that the user has not changed his browser
-                                req.session.isNewBrowser = false;
-                                resolve()
-                            }
-                        }
-                    });
-                }
-            }
-        });
-    })
-} 

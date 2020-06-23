@@ -1,7 +1,7 @@
 const https = require("https");
-const { sendEmail } = require('./email');
 const sqlite = require("sqlite3").verbose();
 require('dotenv').config();
+const axios = require('axios').default
 
 module.exports.CheckPwn = function (emailToCheck, sendingEmail) {
 
@@ -50,9 +50,11 @@ module.exports.CheckPwn = function (emailToCheck, sendingEmail) {
                                 db.run("UPDATE pwndStatus SET data = '" + JSON.stringify(resp) + "' WHERE login = '" + emailToCheck + "'")
                                 //send mail if there is a new breach
                                 var tmpMail = (sendingEmail === null) ? emailToCheck : sendingEmail //if the mail to send to is empty we use the same mail taht we checked
-                                sendEmail(tmpMail,
-                                    "Nouvelle faille de securité pour votre adresse mail!",
-                                    "Merci de contacter votre administrateur pour savoir la procédure à suivre");
+                                axios.post('http://localhost:3334', {
+                                    email: tmpMail,
+                                    subject: "Nouvelle faille de securité pour votre adresse mail!",
+                                    mainText: "Merci de contacter votre administrateur pour savoir la procédure à suivre"
+                                })
                             } else {
                                 console.log("no new breach for " + emailToCheck);
                             }
@@ -62,9 +64,12 @@ module.exports.CheckPwn = function (emailToCheck, sendingEmail) {
                             db.run("INSERT INTO pwndStatus VALUES('" + emailToCheck + "','" + JSON.stringify(resp) + "')")
                             //send mail if there is a new breach
                             var tmpMail = (sendingEmail === null) ? emailToCheck : sendingEmail //if the mail to send to is empty we use the same mail taht we checked
-                            sendEmail(tmpMail,
-                                "Nouvelle faille de securité pour votre adresse mail!",
-                                "Merci de contacter votre administrateur pour savoir la procédure à suivre");
+                            axios.post('http://localhost:3334', {
+                                email: tmpMail,
+                                subject: "Nouvelle faille de securité pour votre adresse mail!",
+                                mainText: "Merci de contacter votre administrateur pour savoir la procédure à suivre"
+                            })
+
                             console.log(emailToCheck + " : user is unknown")
                         }
                     });
