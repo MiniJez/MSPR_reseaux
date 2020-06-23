@@ -1,0 +1,5 @@
+apps:
+  - script   : ./App/index.js
+    name     : 'Login App'
+  - script : ./mailService/index.js
+    name   : 'Mail Service'
