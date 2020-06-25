@@ -19,11 +19,15 @@ app.get('/', (req, res) => {
     res.send('Hello mail service')
 })
 
+/**
+ * Post request to send a mail
+ */
 app.post('/', function (req, res) {
     let email = req.body.email;
     let subject = req.body.subject;
     let mainText = req.body.mainText;
 
+    //set up the mail adress
     transporter.sendMail({
         from: 'no.reply.chatelet.portail@gmail.com',
         to: email,

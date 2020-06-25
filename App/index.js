@@ -85,16 +85,18 @@ app.post('/login', bruteforce.prevent, (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
 
-    ad.authenticate(username, password, function (err, auth) {
+    //authenticated with th LDAP AD on windows server
+    ad.authenticate(username, password, function (err, auth) { 
         if (err) {
             console.log('ERROR-authenticate: ' + JSON.stringify(err));
+            //Here we redirect to login because when the user logs in with wwrong info it throws an error
             res.redirect('/login')
         }
         if (auth) {
             console.log('auth ok')
             req.session.username = username;
             req.session.password = password;
-
+            
             res.redirect('/login-validation')
         }
         else {
@@ -201,7 +203,7 @@ app.get('/not_found', (req, res) => {
 });
 
 /**
- * This route is for the 404/Not found page.
+ * This route is for the 401/unauthorized page.
  * @route GET /unauthorized
  * @returns {object} 401 - Unauthorized page
  * @returns {Error}  default - Unexpected error
