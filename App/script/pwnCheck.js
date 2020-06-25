@@ -91,4 +91,5 @@ module.exports.CheckPwn = function (emailToCheck, sendingEmail) {
     }
 };
 
+//debug
 //this.CheckPwn("richardadrien0@gmail.com", "lou.bege@epsi.fr");

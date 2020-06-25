@@ -16,6 +16,8 @@ const compareIpCountry = async (req) => {
 
     //let ip = await getIp();
     //console.log("ip : ", ip)
+    
+    //get the IP adress
     let ip = req.connection.remoteAddress.replace('::ffff:', '');
     console.log(ip)
     let ipInfos = getIpCountry(ip);
@@ -25,14 +27,18 @@ const compareIpCountry = async (req) => {
     req.session.isNewIp = false
     let username = req.session.username.split("@")[0];
 
+    //inser the data in the database
     let sql = "SELECT * FROM ipInfo WHERE login = ?";
     let dbInfos = await db.get(sql, [username]);
+
     if (!dbInfos == undefined) {
+        //first insertioin in db
         sql = "INSERT INTO ipInfo(login, ip, country) VALUES (?, ?, ?)"
         await db.run(sql, [username, ip, ipInfos.country])
 
         console.log("First connexion ip insertion")
     } else if (dbInfos.ip != ip && dbInfos.country == ipInfos.country) {
+        //ip updated
         sql = "UPDATE ipInfo SET ip = ? WHERE login = ?"
         await db.run(sql, [ip, username])
 
@@ -40,6 +46,7 @@ const compareIpCountry = async (req) => {
         req.session.isNewIp = true
         console.log("Ip updated, sending mail to " + username)
     } else if (dbInfos.country != ipInfos.country) {
+        // contry updated
         sql = "UPDATE ipInfo SET ip = ?, country = ? WHERE login = ?"
         await db.run(sql, [ip, ipInfos.country, username])
 
