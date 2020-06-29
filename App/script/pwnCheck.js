@@ -3,6 +3,15 @@ const sqlite = require("sqlite3").verbose();
 require('dotenv').config();
 const axios = require('axios').default
 
+//Active directory
+const ActiveDirectory = require('activedirectory2').promiseWrapper;
+const config = {
+    url: 'ldap://portail.chatelet.fr',
+    baseDN: 'dc=portail,dc=chatelet,dc=fr'
+};
+const ad = new ActiveDirectory(config);
+
+
 module.exports.CheckPwn = function (emailToCheck, sendingEmail) {
 
     try {
@@ -28,7 +37,7 @@ module.exports.CheckPwn = function (emailToCheck, sendingEmail) {
                 response += chunk;
             });
             respAPi.on('end', () => {
-               // console.log(JSON.parse(response)); //when the buffer is full print it 
+                // console.log(JSON.parse(response)); //when the buffer is full print it 
             });
 
             console.log(response);
@@ -90,6 +99,26 @@ module.exports.CheckPwn = function (emailToCheck, sendingEmail) {
         console.error(error)
     }
 };
+
+module.exports.CheckPwnAllUsers = function () {
+
+    return null;
+    //TODO : this function should cycle throo all the users and check if they have beeen pwnd.
+    // we didnt't finish it because of time constraints but the one up there (CheckPwn) works great  so we think this one whoudl work too.
+
+    /*
+    ad.getUsersForGroup("Users", function (err, users) {
+        if (err) {
+            console.log('ERROR: ' + JSON.stringify(err));
+            return;
+        }
+
+        if (!users) console.log('Group: ' + groupName + ' not found.');
+        else {
+            console.log(JSON.stringify(users));
+        }
+    });*/
+}
 
 //debug
 //this.CheckPwn("richardadrien0@gmail.com", "lou.bege@epsi.fr");

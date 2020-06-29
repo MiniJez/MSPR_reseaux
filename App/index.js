@@ -32,12 +32,11 @@ const ad = new ActiveDirectory(config);
 
 
 //Cron 
-const { CheckPwn } = require('./script/pwnCheck');
+const { CheckPwn, CheckPwnAllUsers } = require('./script/pwnCheck');
 const { send } = require('process');
 const CronJob = require('cron').CronJob;
-var job = new CronJob('5 4 * * * *', function () {
-    //TODO : do for all email adresses
-    CheckPwn("richardadrien0@gmail.com", "lou.bege@epsi.fr");
+var job = new CronJob('5 4 * * * *', function () { //Do this every day at 04h05 
+    CheckPwnAllUsers();
 }, null, true, 'America/Los_Angeles');
 job.start();
 
