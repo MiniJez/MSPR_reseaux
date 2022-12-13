@@ -28,7 +28,7 @@
     "cron": "^1.8.2",
     "detect-browser": "^5.1.1",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-brute": "^1.0.1",
     "express-session": "^1.17.1",
     "express-useragent": "^1.0.13",
